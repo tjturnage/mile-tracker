@@ -12,15 +12,19 @@ import pandas as pd
 import matplotlib.pylab as plt
 #import seaborn as sns
 #import numpy as np
-#import matplotlib.dates as mdates
-
+import matplotlib.dates as mdates
+import matplotlib.ticker as ticker
 import matplotlib.gridspec as gridspec
 
-fig2 = plt.figure(constrained_layout=False)
-spec2 = gridspec.GridSpec(ncols=1, nrows=2, figure=fig2)
 
-f2_ax2 = fig2.add_subplot(spec2[1, 0])
-f2_ax1 = fig2.add_subplot(spec2[0, 0],sharex=f2_ax2)
+fig, axes = plt.subplots(nrows=2, ncols=1, sharex='col', sharey=False,
+                               gridspec_kw={'height_ratios': [1, 1]},
+                               figsize=(9, 4))
+fig.set_tight_layout({'rect': [0, 0, 1, 0.95], 'pad': 1.5, 'h_pad': 1.5})
+plt.setp(axes, title='1000 mile biking goal for 2020')
+plt.setp(axes[0], title='Miles')
+plt.setp(axes[1], title='Average Miles per Day for Rest of Year to Achieve Goal')
+fig.suptitle('Biking Miles 2020', size=20)
 
 
 
@@ -47,7 +51,12 @@ miles = {'1-12-2020':9.6,
 '4-5-2020':7.1,
 '4-8-2020':10.5,
 '4-11-2020':13.8,
-
+'4-14-2020':6.3,
+'4-18-2020':6.3,
+'4-19-2020':9.7,
+'4-22-2020':16.7,
+'4-24-2020':16.5,
+'4-25-2020':13.9,
  }
 
 bike_array = []
@@ -77,14 +86,24 @@ df.set_index('date',inplace=True)
 
 
 #fig,ax = plt.plot()
-ts = df['miles']
-ts= ts.cumsum()
-f2_ax1.plot(ts)
-df['miles_left'] = 1000 - ts
+tm = df['miles']
+total_miles = tm.cumsum()
+axes[0].plot(total_miles)
+axes[0].yaxis.set_major_locator(ticker.MultipleLocator(50))
+#axes[0].grid(axis='y')
+axes[0].grid(True)
+
+df['miles_left'] = 1000 - total_miles
 df['mpd_left'] = df['miles_left']/df['days left']
 dl = df['mpd_left']
 #ts.plot()
-f2_ax2.plot(dl)
+axes[1].plot(dl)
+axes[1].yaxis.set_major_locator(ticker.MultipleLocator(0.1))
+#set ticks every week
+axes[1].xaxis.set_major_locator(mdates.WeekdayLocator())
+#set major ticks format
+axes[1].xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
+plt.grid(True)
 
 
 
