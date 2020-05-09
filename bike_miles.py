@@ -14,23 +14,24 @@ import matplotlib.pylab as plt
 #import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
-import matplotlib.gridspec as gridspec
+# import matplotlib.gridspec as gridspec
 
 
 fig, axes = plt.subplots(nrows=2, ncols=1, sharex='col', sharey=False,
                                gridspec_kw={'height_ratios': [1, 1]},
-                               figsize=(9, 4))
+                               figsize=(10, 4))
 fig.set_tight_layout({'rect': [0, 0, 1, 0.95], 'pad': 1.5, 'h_pad': 1.5})
 plt.setp(axes, title='1000 mile biking goal for 2020')
-plt.setp(axes[0], title='Miles')
-plt.setp(axes[1], title='Average Miles per Day for Rest of Year to Achieve Goal')
-fig.suptitle('Biking Miles 2020', size=20)
+plt.setp(axes[0], title='Accumulated Miles - Actual (Blue) and Average Required (Orange)')
+plt.setp(axes[1], title='Miles Per Day Required for Rest of Year - Actual (Blue) and Average (Orange) ')
+fig.suptitle('1000 Miles Biking Goal For 2020', size=18)
 
 
 
-# Updated: 9/12/2019 2:01:29 AM GMT
+
 test_file = 'C:/data/outages/MIoutages201907201810.html'
-miles = {'1-12-2020':9.6,
+miles = {'1-1-2020':0.0,
+'1-12-2020':9.6,
 '1-23-2020':4.9,
 '1-31-2020':12.3,
 '2-1-2020':5.0,
@@ -59,7 +60,11 @@ miles = {'1-12-2020':9.6,
 '4-25-2020':13.9,
 '4-26-2020':12.5,
 '4-28-2020':15.6,
-'4-30-2020':15.6,
+'5-1-2020':16.3,
+'5-2-2020':10.5,
+'5-5-2020':9.6,
+'5-6-2020':17.1,
+'5-8-2020':10.9,
  }
 
 bike_array = []
@@ -67,6 +72,7 @@ bike_array = []
 for key in miles:
     dt = datetime.strptime(key, '%m-%d-%Y')
     doy = datetime.timetuple(dt)[7]     
+    #slope = 1000/366
     days_left = 366 - doy
     m = miles[key]   
     #print(doy,m)
@@ -83,24 +89,25 @@ except:
     base_dir = 'C:/data'
 
 df = None
-df = pd.DataFrame(bike_array,columns=['date','day of year', 'days left', 'miles'])
+df = pd.DataFrame(bike_array,columns=['date', 'day of year', 'days left', 'miles'])
 df.set_index('date',inplace=True)
-
-
+df['slope'] = 1000/366
+df['pace'] = df['day of year'] * df['slope']
 
 #fig,ax = plt.plot()
 tm = df['miles']
 total_miles = tm.cumsum()
-axes[0].plot(total_miles)
-axes[0].yaxis.set_major_locator(ticker.MultipleLocator(50))
-#axes[0].grid(axis='y')
-axes[0].grid(True)
-
 df['miles_left'] = 1000 - total_miles
 df['mpd_left'] = df['miles_left']/df['days left']
-dl = df['mpd_left']
-#ts.plot()
-axes[1].plot(dl)
+
+axes[0].plot(total_miles)
+axes[0].plot(df['pace'])
+axes[0].yaxis.set_major_locator(ticker.MultipleLocator(50))
+axes[0].grid(True)
+
+
+axes[1].plot(df['mpd_left'])
+axes[1].plot(df['slope'])
 axes[1].yaxis.set_major_locator(ticker.MultipleLocator(0.1))
 #set ticks every week
 axes[1].xaxis.set_major_locator(mdates.WeekdayLocator())
